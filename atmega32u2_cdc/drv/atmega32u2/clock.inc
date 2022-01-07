@@ -1,0 +1,123 @@
+;/*
+; * clock.inc
+; *
+; *  Created: 31.05.2014 23:49:18
+; *   Author: Dominik
+; */ 
+
+.ifndef atmega32u2_clock_include
+.set atmega32u2_clock_include = 1
+
+.EQU FRZLK = 5
+.EQU PINDIV = 2
+
+INIT_PLL_EXT:
+	; Frezze USB Clock
+	LDI R23, (0<<USBE) | (1<<FRZLK) 
+	STS USBCON, R23
+
+	; Start External Clock
+	LDS R23, CLKSEL0
+	SBR R23, (1<<EXTE)
+	STS CLKSEL0, R23
+	
+	; Wait for External Oscillator Start
+	PLL_EXT_LOOP:
+		LDS R23, CLKSTA
+		SBRS R23, EXTON
+	RJMP PLL_EXT_LOOP
+
+	; Select External Clock
+	LDS R23, CLKSEL0
+	SBR R23, (1<<CLKS)	; Set Bit
+	STS CLKSEL0, R23
+
+	; PINDIV 1:2 u. Start PLL
+	IN R23, PLLCSR
+	SBR R23, (1<<PINDIV)
+	OUT PLLCSR, R23	
+	SBR R23, (1<<PLLE)
+	OUT PLLCSR, R23	
+
+	LDS R23, CLKSEL0
+	CBR R23, (1<<RCE)	; Disable RC Clock
+	STS CLKSEL0, R23
+
+	; Wait for PLL Lock
+	PLL_EXT_LOCK_LOOP:
+		IN R23, PLLCSR
+		SBRS R23, PLOCK
+	RJMP PLL_EXT_LOCK_LOOP
+RET
+
+INIT_PLL_RC:
+	; Frezze USB Clock
+	LDI R23, (0<<USBE) | (1<<FRZLK) 
+	STS USBCON, R23
+
+	; Start RC Clock
+	LDS R23, CLKSEL0
+	SBR R23, (1<<RCE)
+	STS CLKSEL0, R23
+	
+	; Wait for RC Oscillator Start
+	PLL_RC_LOOP:
+		LDS R23, CLKSTA
+		SBRS R23, RCON
+	RJMP PLL_RC_LOOP
+
+	; Select RC Clock
+	LDS R23, CLKSEL0
+	CBR R23, (1<<CLKS) ; Clear Bit
+	STS CLKSEL0, R23
+
+	; Start PLL
+	LDS R23, PLLCSR
+	SBR R23, (1<<PLLE)	
+	OUT PLLCSR, R23	
+
+	LDS R23, CLKSEL0
+	CBR R23, (1<<EXTE)	; Disable External Clock
+	STS CLKSEL0, R23
+
+	; Wait for PLL Lock
+	PLL_RC_LOCK_LOOP:
+		IN R23, PLLCSR
+		SBRS R23, PLOCK
+	RJMP PLL_RC_LOCK_LOOP
+RET
+
+.MACRO DISABLE_PLL
+	; Frezze USB Clock
+	CLR R25
+	SBR R25, (1<<FRZLK)	
+	STS USBCON, R25	
+
+	; Disable PLL
+	IN R25, PLLSCR
+	CBR R25, (1<<PLLE)
+	OUT PLLSCR, R25
+.ENDMACRO
+
+
+.SET CLK_DIV_1		= 0b0000
+.SET CLK_DIV_2		= 0b0001
+.SET CLK_DIV_4		= 0b0010
+.SET CLK_DIV_8		= 0b0011
+.SET CLK_DIV_16		= 0b0100
+.SET CLK_DIV_32		= 0b0101
+.SET CLK_DIV_64		= 0b0110
+.SET CLK_DIV_128	= 0b0111
+.SET CLK_DIV_256	= 0b1000
+.MACRO SET_CLOCK_DIV ; CLK_DIV
+PUSH R16
+PUSH R17
+	LDI R16, (1<<CLKPCE)
+	LDI R17, @0
+	STS CLKPR, R16
+	STS CLKPR, R17
+POP R17
+POP R16
+.ENDMACRO
+
+.endif ;atmega32u2_clock_include

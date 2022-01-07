@@ -1,0 +1,200 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
+  <PropertyGroup>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectVersion>7.0</ProjectVersion>
+    <ToolchainName>com.Atmel.AVRAssembler</ToolchainName>
+    <ProjectGuid>59B1D629-9DCC-43ed-A0FD-8AB0E4D622AB</ProjectGuid>
+    <avrdeviceseries>none</avrdeviceseries>
+    <avrdevice>ATmega32U2</avrdevice>
+    <OutputFileName>$(MSBuildProjectName)</OutputFileName>
+    <OutputFileExtension>.obj</OutputFileExtension>
+    <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
+    <Language>ASSEMBLY</Language>
+    <AssemblyName>atmega32u2_cdc</AssemblyName>
+    <Name>atmega32u2_cdc</Name>
+    <RootNamespace>atmega32u2_cdc</RootNamespace>
+    <ToolchainFlavour>Native</ToolchainFlavour>
+    <EntryFile>$(MSBuildProjectDirectory)\atmega32u2.asm</EntryFile>
+    <KeepTimersRunning>true</KeepTimersRunning>
+    <OverrideVtor>false</OverrideVtor>
+    <CacheFlash>true</CacheFlash>
+    <ProgFlashFromRam>true</ProgFlashFromRam>
+    <RamSnippetAddress>0x20000000</RamSnippetAddress>
+    <UncachedRange />
+    <preserveEEPROM>true</preserveEEPROM>
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
+    <BootSegment>2</BootSegment>
+    <eraseonlaunchrule>1</eraseonlaunchrule>
+    <AsfFrameworkConfig>
+      <framework-data>
+        <options />
+        <configurations />
+        <files />
+        <documentation help="" />
+        <offline-documentation help="" />
+        <dependencies>
+          <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.44.0" />
+        </dependencies>
+      </framework-data>
+    </AsfFrameworkConfig>
+    <avrtool>com.atmel.avrdbg.tool.atmelice</avrtool>
+    <avrtoolserialnumber>J41800026539</avrtoolserialnumber>
+    <avrdeviceexpectedsignature>0x1E958A</avrdeviceexpectedsignature>
+    <com_atmel_avrdbg_tool_jtagice3plus>
+      <ToolOptions>
+        <InterfaceProperties>
+          <IspClock>125000</IspClock>
+        </InterfaceProperties>
+        <InterfaceName>debugWIRE</InterfaceName>
+      </ToolOptions>
+      <ToolType>com.atmel.avrdbg.tool.jtagice3plus</ToolType>
+      <ToolNumber>J30200032816</ToolNumber>
+      <ToolName>JTAGICE3</ToolName>
+    </com_atmel_avrdbg_tool_jtagice3plus>
+    <avrtoolinterface>debugWIRE</avrtoolinterface>
+    <avrtoolinterfaceclock>125000</avrtoolinterfaceclock>
+    <ResetRule>0</ResetRule>
+    <EraseKey />
+    <AAFDebugger>
+      <AAFDebugFiles>
+      </AAFDebugFiles>
+    </AAFDebugger>
+    <com_atmel_avrdbg_tool_atmelice>
+      <ToolOptions>
+        <InterfaceProperties>
+        </InterfaceProperties>
+        <InterfaceName>debugWIRE</InterfaceName>
+      </ToolOptions>
+      <ToolType>com.atmel.avrdbg.tool.atmelice</ToolType>
+      <ToolNumber>J41800026539</ToolNumber>
+      <ToolName>Atmel-ICE</ToolName>
+    </com_atmel_avrdbg_tool_atmelice>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <ToolchainSettings>
+      <AvrAssembler>
+        <avrasm.assembler.general.AdditionalIncludeDirectories>
+          <ListValues>
+            <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.2.150\avrasm\inc</Value>
+            <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.6.364\avrasm\inc</Value>
+          </ListValues>
+        </avrasm.assembler.general.AdditionalIncludeDirectories>
+        <avrasm.assembler.general.IncludeFile>m32U2def.inc</avrasm.assembler.general.IncludeFile>
+      </AvrAssembler>
+    </ToolchainSettings>
+    <OutputType>Executable</OutputType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <ToolchainSettings>
+      <AvrAssembler>
+        <avrasm.assembler.general.AdditionalIncludeDirectories>
+          <ListValues>
+            <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.2.150\avrasm\inc</Value>
+            <Value>%24(PackRepoDir)\atmel\ATmega_DFP\1.6.364\avrasm\inc</Value>
+          </ListValues>
+        </avrasm.assembler.general.AdditionalIncludeDirectories>
+        <avrasm.assembler.general.IncludeFile>m32U2def.inc</avrasm.assembler.general.IncludeFile>
+      </AvrAssembler>
+    </ToolchainSettings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="atmega32u2.asm">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\clock.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\spi.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usart_spi.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_buffer.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_cdc.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_cdc_des.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_cdc_exec\cdc_test.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_cdc_exec\echo.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_cdc_exec_funktions.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_cdc_f.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_cdc_interrupts.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_cdc_string.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_config.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_des.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\atmega32u2\usb_ep0_control.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\eeprom.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="drv\pgm.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\base16.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\base32.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\base64.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\cmd_string.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\delay.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\hwmul.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\math.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\mem.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\std.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\string.inc">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="include\swmul.inc">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="drv\" />
+    <Folder Include="drv\atmega32u2\" />
+    <Folder Include="drv\atmega32u2\usb_cdc_exec\" />
+    <Folder Include="include\" />
+  </ItemGroup>
+  <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Assembler.targets" />
+</Project>

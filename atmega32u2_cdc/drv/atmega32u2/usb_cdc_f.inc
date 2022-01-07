@@ -1,0 +1,64 @@
+/*
+ * usb_cdc_f.inc
+ *
+ *  Created: 14.07.2016 00:39:03
+ *   Author: Dominik Koch
+ */ 
+ .ifndef USB_CDC_F_INCLUDE
+.set USB_CDC_F_INCLUDE = 1
+
+;##################################################
+;				USB_CDC_RX_ECHO
+;##################################################
+USB_CDC_RX_ECHO:
+PUSH XL
+PUSH XH
+PUSH YL
+PUSH YH
+PUSH ZL
+PUSH ZH
+	;Load RX Pointer to Z
+	LDI YL, LOW(USB_RX_BUFFER_P)
+	LDI YH, HIGH(USB_RX_BUFFER_P)
+	LDD ZL, Y+0
+	LDD ZH, Y+1
+
+	;Load TX Pointer To X
+	LDI YL, LOW(USB_TX_BUFFER_P)
+	LDI YH, HIGH(USB_TX_BUFFER_P)
+	LDD XL, Y+0
+	LDD XH, Y+1
+
+	; Set USB_RX_BUFFER_P to USB_TX_BUFFER_P
+	STD Y+0, ZL
+	STD Y+1, ZH
+
+	; Echo RX Data
+	RCALL USB_CDC_TX_WAIT
+
+	; Restore USB_TX_BUFFER_P
+	STD Y+0, XL
+	STD Y+1, XH
+USB_CDC_RX_ECHO_END:
+POP ZH
+POP ZL
+POP YH
+POP YL
+POP XH
+POP XL
+RET
+
+USB_CDC_FLUSH_RX_BUFFER:
+		CALL USB_FLUSH_RX_BUFFER
+		CALL USB_CDC_CLR_RX_BUFFER_FULL
+		CALL USB_CDC_CLR_NEW_LN_IN
+		CALL USB_CDC_STATUS_SET_RX
+USB_CDC_FLUSH_RX_BUFFER_END:
+RET
+
+USB_CDC_FLUSH_TX_BUFFER:
+		CALL USB_FLUSH_TX_BUFFER
+USB_CDC_FLUSH_TX_BUFFER_END:
+RET
+
+.endif

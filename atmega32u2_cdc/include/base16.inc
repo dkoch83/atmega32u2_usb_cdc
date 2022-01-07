@@ -1,0 +1,468 @@
+;/*
+; * base16.inc
+; *
+; *  Created: 22.09.2014 00:41:04
+; *   Author: Dominik
+; */ 
+
+;					Table 5: The Base 16 Alphabet
+;
+;      Value Encoding  Value Encoding  Value Encoding  Value Encoding
+;          0 0             4 4             8 8            12 C
+;          1 1             5 5             9 9            13 D
+;          2 2             6 6            10 A            14 E
+;          3 3             7 7            11 B            15 F
+
+.ifndef base16_include
+.set base16_include = 1
+
+.CSEG
+BASE16_CODE: .DB "0123456789ABCDEF"
+;###############################################################################
+;								BASE16_ENC_URL
+;###############################################################################
+; String Pointer = Pointer to a NULL Terminated String
+;
+; Size OUT BUFFER = ((STRLEN * 2) + 1 
+BASE16_ENC_URL: ; XH:XL = String Pointer, YH:YL = OUT BUFFER
+PUSH XH
+PUSH XL
+PUSH YH
+PUSH YL
+PUSH ZH
+PUSH ZL
+PUSH R22
+PUSH R23
+PUSH R24
+PUSH R25	
+	
+	LDI ZH, HIGH(BASE16_CODE)
+	LDI ZL, LOW(BASE16_CODE)
+
+	LDI R22, 4
+	LDI R23, 0
+	CLR R25
+
+	BASE16_ENC_URL_LOOP1:
+		CPI R22, 0x00
+		BRNE BASE16_ENC_URL_WRITEBYTE_END
+				CLR R16
+				MOV R17, R25
+				CALL PGM_READ_BYTE ;ZH:ZL = Pointer Address, R16:R17 = Byte Adress
+				ST Y+, R0
+				DEC R21
+			LDI R22, 4
+			CLR R25
+		BASE16_ENC_URL_WRITEBYTE_END:
+
+		CPI R23, 0x00
+		BRNE BASE16_ENC_URL_READBYTE_END
+		LD R24, X+
+		CPI R24, 0x00
+		BRNE BASE16_ENC_URL_STRNOEND
+			
+			CPI R22, 4
+			BREQ BASE16_ENC_URL_NOLAST
+			BASE16_ENC_URL_LAST:
+				LSL R25
+				DEC R22		
+			BRNE BASE16_ENC_URL_LAST
+				CLR R16
+				MOV R17, R25
+				CALL PGM_READ_BYTE ;ZH:ZL = Pointer Address, R16:R17 = Byte Adress
+				ST Y+, R0
+		BASE16_ENC_URL_NOLAST:
+		RJMP BASE16_ENC_URL_END
+		BASE16_ENC_URL_STRNOEND:
+		LDI R23, 8
+		BASE16_ENC_URL_READBYTE_END:
+
+		; Schift
+		LSL R24
+		ROL R25
+
+		DEC R23
+		DEC R22
+	RJMP BASE16_ENC_URL_LOOP1
+	BASE16_ENC_URL_END:
+	BASE16_ENC_URL_PADD_LOOP_END:
+	LDI R24, 0x00
+	ST Y+, R24
+
+POP R25
+POP R24
+POP R23
+POP R22
+POP ZL
+POP ZH
+POP YL
+POP YH
+POP XL
+POP XH
+RET
+;###############################################################################
+;								BASE16_ENC_BLOCK
+;###############################################################################
+; From Buffer block size must be divisible by 1
+;
+; OUT BUFFER SIZE must ((BUFFER FROM SIZE * 2) + 1
+;
+BASE16_ENC_BLOCK: ; XH:XL = Pointer FROM BUFFER, YH:YL = Pointer OUT BUFFER, R16:R17 = BUFFER FROM SIZE
+PUSH XH
+PUSH XL
+PUSH YH
+PUSH YL
+PUSH ZH
+PUSH ZL
+PUSH R16
+PUSH R17
+PUSH R18
+PUSH R19
+PUSH R20
+PUSH R0
+	
+	MOV R19, R16
+	MOV R20, R17
+
+
+	LDI ZH, HIGH(BASE16_CODE)
+	LDI ZL, LOW(BASE16_CODE)
+
+	LDI R18, 0x00
+
+	CP R17, R18
+	CPC R16, R18
+	BREQ BASE16_ENC_BLOCK_END
+
+
+	CLR R16
+	BASE16_ENC_BLOCK_LOOP1:
+		LD R18, X+
+		
+		MOV R17, R18
+		SWAP R17
+		ANDI R17, 0x0F
+		CALL PGM_READ_BYTE ;ZH:ZL = Pointer Address, R16:R17 = Byte Adress, Return = R0
+		ST Y+, R0
+
+		MOV R17, R18
+		ANDI R17, 0x0F
+		CALL PGM_READ_BYTE ;ZH:ZL = Pointer Address, R16:R17 = Byte Adress, Return = R0
+		ST Y+, R0
+
+		LDI R17, 1
+		SUB R20, R17
+		LDI R17, 0
+		SBC R19, R17
+	BREQ BASE16_ENC_BLOCK_END 
+	RJMP BASE16_ENC_BLOCK_LOOP1
+	BASE16_ENC_BLOCK_END:
+	LDI R16, 0
+	ST Y+, R16
+POP R0
+POP R20
+POP R19
+POP R18
+POP R17
+POP R16
+POP ZL
+POP ZH
+POP YL
+POP YH
+POP XL
+POP XH
+RET
+;###############################################################################
+;								BASE16_DEC_URL
+;###############################################################################
+BASE16_DEC_URL: ; XH:XL = Pointer BASE16 CODE, YH:YL = Pointer OUT STRING
+PUSH XH
+PUSH XL
+PUSH YH
+PUSH YL
+PUSH ZH
+PUSH ZL
+PUSH R22
+PUSH R23
+PUSH R24
+PUSH R17
+PUSH R16
+	LDI ZH, HIGH(BASE16_CODE)
+	LDI ZL, LOW(BASE16_CODE)
+
+	LDI R22, 0
+	LDI R23, 8
+
+	BASE16_DEC_URL_LOOP:
+		
+		CPI R23, 0x00
+		BRNE BASE16_DEC_URL_WRITE_END
+		BASE16_DEC_URL_WRITE:
+			ST Y+, R24
+			LDI R23, 8
+		BASE16_DEC_URL_WRITE_END:
+		
+		CPI R22, 0x00
+		BRNE BASE16_DEC_URL_READ_END
+		BASE16_DEC_URL_READ:
+			LD R16, X+ 
+			CPI R16, 0x00
+			BREQ BASE16_DEC_URL_END
+
+			CPI R16, '='
+			BREQ BASE16_DEC_URL_END
+
+			CALL PGM_FIND_CHAR ; (Z) Pointer PGM, R16 = CHAR to FIND, R0:R1 = CHAR POS
+			TST R0
+			BRMI BASE16_DEC_URL_END
+			LSL R1
+			LSL R1
+			LSL R1
+			LSL R1
+			LDI R22, 4
+		BASE16_DEC_URL_READ_END:
+
+		LSL R1
+		ROL R24
+
+		DEC R22
+		DEC R23
+		RJMP BASE16_DEC_URL_LOOP
+	BASE16_DEC_URL_END:
+		LDI R24 ,0x00
+		ST Y+, R24
+POP R16
+POP R17
+POP R24
+POP R23
+POP R22
+POP ZL
+POP ZH
+POP YL
+POP YH
+POP XL
+POP XH
+RET
+
+; (BASE16 code block size must be divisible by 1) + NULL Terminated
+BASE16_DEC_BLOCK: ; XH:XL = Pointer BASE16 CODE, YH:YL = Pointer OUT STRING
+PUSH XH
+PUSH XL
+PUSH YH
+PUSH YL
+PUSH ZH
+PUSH ZL
+PUSH R21
+PUSH R22
+PUSH R23
+PUSH R24
+PUSH R17
+PUSH R16
+	LDI ZH, HIGH(BASE16_CODE)
+	LDI ZL, LOW(BASE16_CODE)
+
+	LDI R22, 0
+	LDI R23, 8
+
+	CLR R0
+	CLR R1
+
+	BASE16_DEC_BLOCK_LOOP:
+
+		CPI R23, 0x00
+		BRNE BASE16_DEC_BLOCK_WRITE_END
+		BASE16_DEC_BLOCK_WRITE:
+			ST Y+, R24
+
+			LDI R24, 0x01
+			ADD R1, R24
+			LDI R24, 0x00
+			ADC R0, R24
+
+			LDI R23, 8
+		BASE16_DEC_BLOCK_WRITE_END:
+
+		CPI R22, 0x00
+		BRNE BASE16_DEC_BLOCK_READ_END
+		BASE16_DEC_BLOCK_READ:
+			LD R16, X+ 
+			CPI R16, 0x00
+			BREQ BASE16_DEC_BLOCK_END
+			
+			PUSH R0
+			PUSH R1
+				CALL PGM_FIND_CHAR ; (Z) Pointer PGM, R16 = CHAR to FIND, R0:R1 = CHAR POS
+				TST R0
+				BRMI BASE16_DEC_BLOCK_END
+				MOV R21, R1
+			POP R1
+			POP R0
+
+			LSL R21
+			LSL R21
+			LSL R21
+			LSL R21
+			LDI R22, 4
+		BASE16_DEC_BLOCK_READ_END:
+
+		LSL R21
+		ROL R24
+
+		DEC R22
+		DEC R23
+		RJMP BASE16_DEC_BLOCK_LOOP
+	BASE16_DEC_BLOCK_FINISH:
+		LDI R24 ,0x00
+	RJMP BASE16_DEC_BLOCK_END_END
+	BASE16_DEC_BLOCK_END:
+		ST Y+, R24
+		LDI R24, 0x01
+		ADD R1, R24
+		LDI R24, 0x00
+		ADC R0, R24
+	BASE16_DEC_BLOCK_END_END:
+POP R16
+POP R17
+POP R24
+POP R23
+POP R22
+POP R21
+POP ZL
+POP ZH
+POP YL
+POP YH
+POP XL
+POP XH
+RET
+
+;###############################################################################
+;								HEX_STR
+;###############################################################################
+; From Buffer block size must be divisible by 1
+;
+; OUT BUFFER SIZE must ((BUFFER FROM SIZE * 3) + 1
+;
+HEX_STR: ; XH:XL = Pointer FROM BUFFER, YH:YL = Pointer OUT BUFFER, R16 = BUFFER FROM SIZE
+PUSH XH
+PUSH XL
+PUSH YH
+PUSH YL
+PUSH ZH
+PUSH ZL
+PUSH R16
+PUSH R17
+PUSH R18
+PUSH R19
+PUSH R0
+	MOV R19, R16
+
+	LDI ZH, HIGH(BASE16_CODE)
+	LDI ZL, LOW(BASE16_CODE)
+
+	LDI R18, 0x00
+
+	TST R16
+	BREQ HEX_STR_END
+
+	CLR R16
+	HEX_STR_LOOP1:
+		LD R18, X+
+		
+		MOV R17, R18
+		SWAP R17
+		ANDI R17, 0x0F
+		CALL PGM_READ_BYTE8 ;ZH:ZL = Pointer Address, R16:R17 = Byte Adress, Return = R0
+		ST Y+, R0
+
+		MOV R17, R18
+		ANDI R17, 0x0F
+		CALL PGM_READ_BYTE8 ;ZH:ZL = Pointer Address, R16:R17 = Byte Adress, Return = R0
+		ST Y+, R0
+
+		;Concat " "
+		LDI R18, 0x20
+		ST Y+, R18
+
+		DEC R19
+	BREQ HEX_STR_END 
+	RJMP HEX_STR_LOOP1
+	HEX_STR_END:
+	LDI R16, 0
+	ST -Y, R16
+POP R0
+POP R19
+POP R18
+POP R17
+POP R16
+POP ZL
+POP ZH
+POP YL
+POP YH
+POP XL
+POP XH
+RET
+;###############################################################################
+;								STR_HEX
+;###############################################################################
+STR_HEX: ; XH:XL = STR_Pointer, YH:YL = Out_Buffer_Pointer, R0 = Out_Buffer_Bytes
+PUSH XH
+PUSH XL
+PUSH YH
+PUSH YL
+PUSH ZH
+PUSH ZL
+PUSH R16
+PUSH R17
+PUSH R18
+	CLR R18
+
+	LDI ZH, HIGH(BASE16_CODE)
+	LDI ZL, LOW(BASE16_CODE)
+
+	STR_HEX_LOOP1:
+		LD R16, X+
+		CPI R16, 0x00
+		BREQ STR_HEX_LOOP1_END
+		
+		CPI R16, ' '
+		BREQ STR_HEX_LOOP1
+
+		CLR R17
+
+		RCALL PGM_FIND_CHAR8 ; (Z) Pointer PGM, R16 = CHAR to FIND, R0 = CHAR POS
+		OR R17, R0
+
+		LD R16, X+
+		CPI R16, 0x00
+		BREQ STR_HEX_STORE_FINISH
+		
+		CPI R16, ' '
+		BREQ STR_HEX_STORE
+
+		SWAP R17
+
+		RCALL PGM_FIND_CHAR8 ; (Z) Pointer PGM, R16 = CHAR to FIND, R0 = CHAR POS
+		OR R17, R0
+
+		STR_HEX_STORE:
+			ST Y+, R17
+			INC R18
+	RJMP STR_HEX_LOOP1
+		STR_HEX_STORE_FINISH:
+			ST Y+, R17
+			INC R18
+	STR_HEX_LOOP1_END:
+	MOV R0, R18
+STR_HEX_END:
+POP R18
+POP R17
+POP R16
+POP ZL
+POP ZH
+POP YL
+POP YH
+POP XL
+POP XH
+RET
+
+.endif
